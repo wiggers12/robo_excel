@@ -17,7 +17,7 @@ from dash.exceptions import PreventUpdate
 SHEETS_URL = "https://docs.google.com/spreadsheets/d/1SEeX-g_Wdl0XpdXt90nDgDBPrjbS3zh_8yvAVpoxpPs/export?format=xlsx"
 TEMA_DARK = "#0d1117"
 COR_CARD_BG = "#161b22"
-ABA_PRINCIPAL = "Dados Originais"
+ABA_PRINCIPAL = "controle de processos"
 
 COLUNAS_MAP = {
     "col_uf": ["uf", "munic", "local"],
@@ -128,3 +128,4 @@ def recarregar_dados_e_status(n_clicks, n_periodic, n_init, current_data):
 if __name__ == "__main__":
     # CORREÇÃO: Usamos app.run em vez de app.run_server
     app.run(debug=True)
+
