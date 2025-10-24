@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 dash==3.2.0
 dash-bootstrap-components
 plotly
@@ -5,3 +6,12 @@ pandas
 openpyxl
 unidecode
 gunicorn
+=======
+dash==3.2.0
+dash-bootstrap-components
+plotly
+pandas
+openpyxl
+unidecode
+gunicorn
+>>>>>>> 05db689 (Versão inicial do Robô Dash v10.5)
