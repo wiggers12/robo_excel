@@ -63,33 +63,43 @@ MAX_WIDTH_STYLE = {
 # ---------------- LAYOUT RAIZ (ROOT LAYOUT) ----------------
 
 app.layout = dbc.Container(
-    style=MAX_WIDTH_STYLE, 
+    style=MAX_WIDTH_STYLE,
     children=[
         html.Br(),
         
-        # --- BARRA DE NAVEGAÇÃO MANUAL E TÍTULO ---
+        # --- BARRA DE NAVEGAÇÃO E TÍTULO ---
         dbc.Row([
-            dbc.Col(html.H2("📊 Multi-Page Dashboard", style={"color": "#fff", "fontSize": "24px"}), 
+            dbc.Col(html.H2("📊 Dashboard Principal", style={"color": "#fff", "fontSize": "24px"}),
                     xs=12, md=6, className="mb-3 mb-md-0"),
             
+            # --- ATENÇÃO: BOTÕES PERSONALIZADOS AQUI ---
             dbc.Col(dbc.Stack(direction="horizontal", gap=3, children=[
-                # Links Manuais para as Páginas (o Dash Pages se encarrega do roteamento)
-                dbc.Button("Dashboard Principal", color="secondary", href="/", className="me-2"),
-                # ATENÇÃO: As rotas devem coincidir com o 'path' do register_page nas pastas pages/
+                
+                # Botão para Funil de Precatórios
+                # O 'href' deve coincidir com o 'path' que será registrado na página
                 dbc.Button("Funil de Precatórios", color="primary", href="/funil_precatorio", className="me-2"),
-                dbc.Button("CRM - Tempo Real", color="info", href="/crm_tempo_real", className="me-2"),
+                
+                # Botão para Metas por Pasta
+                # O 'href' deve coincidir com o 'path' que será registrado na página
+                dbc.Button("Metas por Pasta", color="info", href="/metas_por_pasta", className="me-2"),
+                
+                # *Opcional: Mantenha o botão de Home/Principal caso precise de um link para o app.py*
+                dbc.Button("Início/Visão Geral", color="secondary", href="/", className="me-2"),
+                
             ]), xs=12, md=6, className="d-flex justify-content-md-end justify-content-start"),
         ], className="align-items-center mb-4"),
         
-        html.Hr(style={"borderColor": COR_CARD_BG}), 
+        # ... (Componentes Globais: dcc.Store, dcc.Interval)
         
-        # --- COMPONENTES GLOBAIS ---
-        dcc.Store(id="data_store", data=None), 
-        dcc.Interval(id="timer_periodico", interval=90000, n_intervals=0, max_intervals=-1), 
-        dcc.Interval(id="timer_inicializacao", interval=1, n_intervals=0, max_intervals=1), 
+        html.Hr(style={"borderColor": COR_CARD_BG}),
         
         # O dash.page_container renderiza a página ativa
-        html.Div(dash.page_container, id='page-wrapper'), 
+        # Se a rota for '/', ele renderiza a página que tiver path='/' (geralmente app.py)
+        html.Div(dash.page_container, id='page-wrapper'),
+        
+        # ... (ÁREA DE STATUS E RECARGA)
+    ]
+)
         
         # --- ÁREA DE STATUS E RECARGA ---
         html.Div([
@@ -128,4 +138,5 @@ def recarregar_dados_e_status(n_clicks, n_periodic, n_init, current_data):
 if __name__ == "__main__":
     # CORREÇÃO: Usamos app.run em vez de app.run_server
     app.run(debug=True)
+
 
