@@ -37,7 +37,6 @@ app.layout = html.Div([
 # ---------------- EXECUÇÃO ----------------
 if __name__ == '__main__':
     app.run(debug=True)
-=======
 # =======================================================
 # 📊 ROBÔ POWER BI IA EDITION (DASHBOARD FINAL E COMPLETO)
 # =======================================================
