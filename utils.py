@@ -25,12 +25,16 @@ def carregar_dados(sheet_name):
         # 🧹 Normaliza nomes de colunas (para evitar erro nos callbacks)
         df.columns = [
             unidecode.unidecode(c)
-            .replace(":", "")
-            .replace("%", "")
-            .replace("/", "_")
-            .replace(" ", "_")
-            .replace("-", "_")
-            .lower()
+           .replace(":", "")
+.replace("%", "")
+.replace("/", "_")
+.replace("?", "")
+.replace("(", "")
+.replace(")", "")
+.replace(" ", "_")
+.replace("-", "_")
+.lower()
+
             for c in df.columns
         ]
 
