@@ -1,130 +1,39 @@
-# =======================================================
-# 📊 ROBÔ POWER BI IA EDITION (V7.2 - CORREÇÃO DE IMPORTAÇÃO)
-# Correção: Adicionado 'import dash' para resolver o NameError.
-# Autor: Dionatan Wiggers
-# =======================================================
-
-import pandas as pd
-import unidecode
-import json 
-import dash # <--- ADICIONADO AQUI
-from dash import Dash, dcc, html, Input, Output, dash_table, State
-import plotly.express as px
+import dash
+from dash import html, dcc
 import dash_bootstrap_components as dbc
-from dash.exceptions import PreventUpdate
+# Importa constantes globais (assumindo que utils.py existe)
+from utils import TEMA_DARK 
 
-# ---------------- CONFIGURAÇÕES GLOBAIS ----------------
-SHEETS_URL = "https://docs.google.com/spreadsheets/d/1SEeX-g_Wdl0XpdXt90nDgDBPrjbS3zh_8yvAVpoxpPs/export?format=xlsx"
-TEMA_DARK = "#0d1117"
-COR_CARD_BG = "#161b22"
-ABA_PRINCIPAL = "Dados Originais"
+# ---------------- DASH APP E CONFIGURAÇÃO DE PÁGINAS ----------------
+# use_pages=True detecta automaticamente os arquivos na pasta 'pages'
+# Isso garante que a navegação funcione.
+app = dash.Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.DARKLY], suppress_callback_exceptions=True)
+server = app.server
+app.title = "ROBÔ POWER BI IA EDITION"
 
-COLUNAS_MAP = {
-    "col_uf": ["uf", "munic", "local"],
-    "col_status": ["status", "status_final", "situacao"],
-    "col_cons": ["consultor", "responsavel", "comercial"],
-    "col_ass": ["assinatura", "data_assinatura"],
-    "col_dist": ["distribuicao", "data_distribuicao"],
-    "col_mes": ["mes", "mes_competencia", "mes_ref"],
-    "col_area": ["area", "pasta", "setor"]
-}
-
-def normalizar(nome):
-    """Normaliza colunas."""
-    return unidecode.unidecode(nome.strip().lower().replace(" ", "_").replace("/", "_").replace("-", "_"))
-
-def carregar_abas():
-    """Carrega todas as abas e retorna um dicionário de JSON strings."""
-    try:
-        xls = pd.ExcelFile(SHEETS_URL)
-        abas = {}
-        for aba in xls.sheet_names:
-            df = pd.read_excel(xls, sheet_name=aba)
-            df.columns = [normalizar(c) for c in df.columns]
-            abas[aba] = df.to_json(date_format='iso', orient='split')
-        print(f"✅ Recarga completa! {len(abas)} abas carregadas.")
-        return json.dumps(abas)
-    except Exception as e:
-        print(f"❌ Erro ao carregar Google Sheets: {e}")
-        return None
-
-# ---------------- DASH APP INICIALIZAÇÃO (Padrão Pages) ----------------
-# use_pages=True é fundamental
-app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY], use_pages=True)
-server = app.server 
-app.title = "Power BI IA Edition 7.1 (Multi-Page Fix)"
-
-MAX_WIDTH_STYLE = {
-    'maxWidth': '1400px', 
-    'margin': 'auto',     
-    'padding': '0 15px'   
-}
-
-# ---------------- LAYOUT RAIZ (ROOT LAYOUT) ----------------
-
-app.layout = dbc.Container(
-    style=MAX_WIDTH_STYLE, 
+# Componente Navbar (O SEU BOTÃO JÁ EXISTENTE)
+navbar = dbc.NavbarSimple(
     children=[
-        html.Br(),
-        
-        # --- BARRA DE NAVEGAÇÃO MANUAL E TÍTULO ---
-        dbc.Row([
-            dbc.Col(html.H2("📊 Multi-Page Dashboard", style={"color": "#fff", "fontSize": "24px"}), 
-                    xs=12, md=6, className="mb-3 mb-md-0"),
-            
-            dbc.Col(dbc.Stack(direction="horizontal", gap=3, children=[
-                # Links Manuais para as Páginas (o Dash Pages se encarrega do roteamento)
-                dbc.Button("Dashboard Principal", color="secondary", href="/", className="me-2"),
-                # ATENÇÃO: As rotas devem coincidir com o 'path' do register_page nas pastas pages/
-                dbc.Button("Funil de Precatórios", color="primary", href="/funil_precatorio", className="me-2"),
-                dbc.Button("CRM - Tempo Real", color="info", href="/crm_tempo_real", className="me-2"),
-            ]), xs=12, md=6, className="d-flex justify-content-md-end justify-content-start"),
-        ], className="align-items-center mb-4"),
-        
-        html.Hr(style={"borderColor": COR_CARD_BG}), 
-        
-        # --- COMPONENTES GLOBAIS ---
-        dcc.Store(id="data_store", data=None), 
-        dcc.Interval(id="timer_periodico", interval=90000, n_intervals=0, max_intervals=-1), 
-        dcc.Interval(id="timer_inicializacao", interval=1, n_intervals=0, max_intervals=1), 
-        
-        # O dash.page_container renderiza a página ativa
-        html.Div(dash.page_container, id='page-wrapper'), 
-        
-        # --- ÁREA DE STATUS E RECARGA ---
-        html.Div([
-            dbc.Button("🔄 Recarregar Dados Manualmente", id="btn_recarregar", n_clicks=0, 
-                       color="success", className="me-2"),
-            html.Span(id='status_recarregamento', style={'marginLeft': '20px', 'color': '#8b949e'})
-        ], style={"textAlign": "center", "marginTop": "20px", "marginBottom": "40px"}),
-        
-    ]
+        # Cria um link para CADA página registrada
+        dbc.NavItem(dbc.NavLink(page['name'], href=page['path'], active="exact"))
+        for page in dash.page_registry.values()
+    ],
+    brand="ROBÔ POWER BI IA EDITION",
+    brand_href="/",
+    color="dark",
+    dark=True,
+    className="mb-4",
 )
 
-# ---------------- CALLBACKS GLOBAIS DE DADOS ----------------
-
-# 1. Recarrega dados brutos (Input: Botão/Timers; Output: data_store e status)
-@app.callback(
-    [Output('data_store', 'data'),
-     Output('status_recarregamento', 'children')],
-    [Input('btn_recarregar', 'n_clicks'),
-     Input('timer_periodico', 'n_intervals'),
-     Input('timer_inicializacao', 'n_intervals')],
-    [State('data_store', 'data')]
-)
-def recarregar_dados_e_status(n_clicks, n_periodic, n_init, current_data):
-    if n_init == 0 and n_clicks == 0:
-        raise PreventUpdate
-
-    dados_json_dump = carregar_abas()
-    if dados_json_dump is None:
-        return current_data, "Erro na Recarga. Verifique o link e o Sheets."
-    
-    hora = pd.Timestamp.now().strftime("%H:%M:%S")
-    return dados_json_dump, f"Recarregado: {hora}"
-
+# ---------------- LAYOUT MESTRE ----------------
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    navbar,
+    # O componente page_container renderiza a página ativa
+    # Ele buscará automaticamente o conteúdo de pages/controle.py na rota '/'
+    dash.page_container 
+])
 
 # ---------------- EXECUÇÃO ----------------
-if __name__ == "__main__":
-    # CORREÇÃO: Usamos app.run em vez de app.run_server
+if __name__ == '__main__':
     app.run(debug=True)

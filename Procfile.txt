@@ -1,5 +1,0 @@
-HEAD
-web: gunicorn app:server
-
-web: gunicorn app:server
-05db689 (Versão inicial do Robô Dash v10.5)
